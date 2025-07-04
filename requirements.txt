@@ -1,0 +1,12 @@
+citylearn
+matplotlib
+numpy
+pandas
+seaborn
+scikit-learn
+notebook
+tqdm
+pyyaml
+gymnasium
+streamlit    # Si quieres dashboard interactivo
+plotly

@@ -1,0 +1,41 @@
+# Entornos virtuales
+.venv/
+env/
+venv/
+
+# Archivos temporales Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Jupyter notebook checkpoints
+.ipynb_checkpoints
+
+# Configuración local VSCode/PyCharm
+.vscode/
+.idea/
+
+# Archivos de logs y outputs
+*.log
+*.out
+
+# Carpeta de resultados grandes
+results/
+logs/
+checkpoints/
+plots/
+metrics/
+
+# Archivos de datos pesados
+data/
+!data/*.md   # Exceptúa un README de data, si quieres
+!data/README.md
+
+# Archivos de configuración de usuario
+*.env
+.env.*
+
+# Otros archivos comunes
+.DS_Store
+Thumbs.db
