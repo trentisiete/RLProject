@@ -1,4 +1,4 @@
-# CityLearn-RL-Project 🇪🇸🏙️⚡️
+# CityLearn-RL-Project 
 
 **Gestión energética inteligente de edificios con Deep Reinforcement Learning**
 
