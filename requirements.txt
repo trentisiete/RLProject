@@ -1,17 +1,19 @@
-# --- Core del Proyecto ---
-citylearn
-numpy==1.21.6
+# Primero, las dependencias numéricas clave con versiones compatibles
+numpy==1.26.*
 pandas
-scikit-learn==1.2.2
-gymnasium
 
-# --- Análisis y Notebooks ---
-matplotlib
-seaborn
-notebook
-tqdm
+# Luego, la dependencia de machine learning que sabemos que es conflictiva
+scikit-learn
 
-# --- Configuración y Dashboard ---
-pyyaml
-streamlit
+# Ahora, la librería principal del proyecto
+CityLearn==2.0.0
+
+# Finalmente, el resto de herramientas
+gymnasium 
+matplotlib 
+seaborn 
+notebook 
+tqdm 
+pyyaml 
+streamlit 
 plotly
