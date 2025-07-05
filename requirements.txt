@@ -1,12 +1,17 @@
+# --- Core del Proyecto ---
 citylearn
-matplotlib
-numpy
+numpy==1.21.6
 pandas
+scikit-learn==1.2.2
+gymnasium
+
+# --- Análisis y Notebooks ---
+matplotlib
 seaborn
-scikit-learn
 notebook
 tqdm
+
+# --- Configuración y Dashboard ---
 pyyaml
-gymnasium
-streamlit    # Si quieres dashboard interactivo
+streamlit
 plotly
