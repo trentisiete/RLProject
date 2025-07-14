@@ -1,0 +1,13 @@
+# configs/env_config.yaml
+
+env:
+  # The name of the Gym or other environment
+  # (must match what make_env() -> config.py expects)
+  name: "CartPole-v1"
+
+  # Optional wrappers you can turn on/off
+  wrappers:
+    normalize_obs: true    # scale observations to [–1,1]
+    clip_reward: true      # clip rewards to ±1
+    frame_stack: false     # stack last N frames (more for Atari)
+    seed: 0                # base seed applied when creating env 

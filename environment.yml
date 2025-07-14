@@ -1,0 +1,37 @@
+name: dqn-env
+channels:
+  - conda-forge
+  - defaults
+
+dependencies:
+  # -------------------
+  # 1) Base de Python
+  # -------------------
+  - python=3.10
+
+  # ---------------------------
+  # 2) Paquetes instalables via Conda
+  # ---------------------------
+  - numpy>=1.24          # procesamiento numérico
+  - pandas>=2.0          # análisis/CSV
+  - matplotlib>=3.7      # gráficos
+  - tensorboard>=2.12    # logs de entrenamiento
+  - tqdm>=4.65           # barras de progreso
+  - pytest>=7.4          # tests
+  - black                # formateo
+  - swig                 # para box2d si luego lo usas
+  - pytorch>=2.0,<3.0    # motor de redes
+  - torchvision>=0.15    # utilidades imagen
+  # (si tienes GPU NVIDIA, podrías pinchar también: pytorch-cuda=11.8)
+
+  # ---------------------------
+  # 3) Pip only (no está en conda-forge)
+  # ---------------------------
+  - pip
+  - pip:
+    - gymnasium[classic_control,atari]   # entornos clásicos y Atari
+    - gym-minigrid>=1.0.2                # MiniGrid
+    - procgen                            # Procgen Benchmark
+    - stable-baselines3[extra]>=2.1.0    # SB3 con extras
+    - ray[rllib]>=2.5.0                  # Ray RLlib
+    - wandb>=0.15.0                      # opcional (tracking)

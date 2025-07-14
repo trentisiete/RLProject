@@ -1,19 +1,24 @@
-# Primero, las dependencias numéricas clave con versiones compatibles
-numpy==1.26.*
-pandas
+# RL core
+gymnasium[classic_control,atari]        # entornos básicos y Atari
+gym-minigrid>=1.0.2                     # MiniGrid para grid-world simbólico
+procgen==0.10.5                         # Procgen Benchmark
 
-# Luego, la dependencia de machine learning que sabemos que es conflictiva
-scikit-learn
+# Deep learning
+torch>=2.0.0,<3.0                       # PyTorch para redes y entrenamiento
+torchvision>=0.15.0                     # utilidades de imagen
 
-# Ahora, la librería principal del proyecto
-CityLearn==2.0.0
+# Agentes de referencia
+stable-baselines3[extra]>=2.1.0         # SB3 con dependencias extra (Atari, Tensorboard)
+ray[rllib]>=2.5.0                       # RLlib para comparar con DQN/PPO escalable
 
-# Finalmente, el resto de herramientas
-gymnasium 
-matplotlib 
-seaborn 
-notebook 
-tqdm 
-pyyaml 
-streamlit 
-plotly
+# Utilidades y logging
+numpy>=1.24.0                           # arrays y procesamiento numérico
+pandas>=2.0.0                           # análisis de resultados y CSV
+matplotlib>=3.7.0                       # gráficas de curvas de aprendizaje
+tensorboard>=2.12.0                     # visualización de entrenamiento
+wandb>=0.15.0                           # (opcional) experiment tracking
+
+# Extras recomendados
+tqdm>=4.65.0                            # barras de progreso
+pytest>=7.4.0                           # tests unitarios de tu código
+black                                 # formateo de código (opcional)

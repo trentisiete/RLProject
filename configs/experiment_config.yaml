@@ -1,0 +1,23 @@
+# configs/experiment_config.yaml
+
+experiment:
+  # List of environment names to loop over
+  envs:
+    - "CartPole-v1"
+    - "MountainCar-v0"
+    # - "CityLearnZoneEasy"
+    # - "CityLearnZoneHard"
+
+  # Random seeds for each run (help measure variance)
+  seeds:
+    - 0
+    - 100
+    - 28
+
+  # How many episodes to train per (env, seed) combo
+  episodes_per_env: 500
+
+  # (Optional) Evaluation settings
+  evaluation:
+    eval_episodes: 20        # how many episodes to run for evaluation
+    eval_every: 50           # run evaluation every N training episodes
