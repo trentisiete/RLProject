@@ -1,9 +1,12 @@
+from sre_parse import State
 from .base import BaseAgent
 import torch
 import torch.nn as nn
 import torch.nn.functional as F # No need to instantiate
 from src.agents.buffers import replayBuffer
+from.src.utils.buffer import Transition
 import numpy as np
+import math
 import random
 
 class MlpQNetwork(nn.Module):
@@ -79,24 +82,48 @@ class DQNAgent(BaseAgent):
 
 
     def select_action(self, state):
-        # ε-greedy policy…
-        epsilon = self.epsilon_end + (self.epsilon_start - self.epsilon_end) * np.exp(-1 * self.steps_done/ self.epsilon_decay_steps)
+        
+        # Calculate current epsilon using exponential decay
+        epsilon = self.epsilon_end + (self.epsilon_start - self.epsilon_end) * \
+              math.exp(-1. * self.steps_done / self.epsilon_decay_steps)
+        
+        self.steps_done += 1
 
-        random_number = random.random()
-        if random_number < epsilon:
-            self.act_space.sample()
+        if random.random() < epsilon:
+            # Random Action from random Agent
+            return self.act_space.sample()
         else:
-            state_tensor = torch.from_numpy(state).unsqueeze(0).to(self.device)
+            with torch.no_grad():
 
-            output = self.policy_net.forward(state)
+                state_tensor = torch.from_numpy(state).float().unsqueeze(0).to(self.device)
+                # Torch.from_numpy converts to torch array
+                # Unsqueeze convert the tensor from size N to (1, N) like a batch
 
+                # Get the values from the Q_network passing the state_tensor
+                # No need to directly write the "forward" method explicitly
+                q_values = self.policy_net(state_tensor)
 
-        pass
+                # return the best action
+                return torch.argmax(q_values).item()
+        
 
-    def observe(self, s, a, r, s2, done):
-        # push to replay…
-        pass
+    def observe(self, state, action, reward:float, next_state, done:bool):
+        """Store a transition in the replay buffer."""
+        # Packaging the data into a "Transition" object
+        transition = Transition(state, action, reward, next_state, done)
+        
+        # Adding the "transition" object to Buffer
+        self.buffer.add(transition)
+
 
     def update(self):
-        # sample minibatch, gradient step…
-        return {"loss": loss_value, "epsilon": self.epsilon}
+        # Sample a random batch from the buffer
+        if len(self.buffer) < self.batch_size:
+            return
+        else:
+            experiences = self.buffer.sample(self.batch_size)
+        
+        # Calculate the target Q-Values for that batch using the frozen target Network.
+        
+
+
