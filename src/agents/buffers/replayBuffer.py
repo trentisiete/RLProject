@@ -27,7 +27,16 @@ class ReplayBuffer(BaseBuffer):
         self.pos = (self.pos + 1) % self.capacity
     
     def sample(self, batch_size: int):
-        """Take a random sample of the saved transitions"""
+        """Take a random sample of the saved transitions
+            returns:
+                Dict({
+                    states, "float"
+                    actions: "long"
+                    rewards: "float"
+                    next_states: "float",
+                    dones: "float",  ¿?                
+                    })
+        """
         batch = random.sample(self.storage, batch_size)
         states, actions, rewards, next_states, dones = zip(*batch)
 

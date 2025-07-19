@@ -4,18 +4,21 @@ agent:
   # Which agent class to use: dqn, ppo, random
   type: dqn
   network: "MlpQNetwork" # podria ser CNN_atari (Like different Brains)
+  train_frequency: 4
 
   # All hyperparameters that your agent’s constructor
   # and update() routine will consume
   hyperparams:
     # Common DQN params
-    lr: 0.0001                 # learning rate
+    lr: 0.001                 # learning rate
     gamma: 0.99                # discount factor
-    batch_size: 64             # minibatch size
+    batch_size: 4             # minibatch size
     replay_buffer_size: 100000 # max transitions to store
-    target_update_freq: 1000   # how often (in steps) to sync target net
+    # buffer_size: 100000 # max transitions to store
+    target_update_freq: 10   # how often (in steps) to sync target net
 
     # Exploration schedule
     epsilon_start: 1.0
-    epsilon_end: 0.01
-    epsilon_decay_steps: 50000
+    epsilon_end: 0.05
+    # epsilon_decay_steps: 10000
+    epsilon_decay_steps: 1000

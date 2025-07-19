@@ -1,14 +1,16 @@
 from pathlib import Path
 import yaml
-from gym import Env
+import gymnasium as gym
+from gymnasium import Env
+from gymnasium.wrappers import NormalizeObservation
 from src.agents.dqn import DQNAgent
-from src.agents.ppo import PPOAgent
-from src.agents.random_agent import RandomAgent ffffffffffffffffffffffffffffffffffffff
+# from src.agents.ppo import PPOAgent
+from src.agents.random_agent import RandomAgent 
 
 
 AGENT_CLASSES = {
     'dqn':    DQNAgent,
-    'ppo':    PPOAgent,
+    # 'ppo':    PPOAgent,
     'random': RandomAgent,
 }
 

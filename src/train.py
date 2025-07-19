@@ -1,11 +1,13 @@
 from pathlib import Path
 from dataclasses import dataclass, asdict
 from typing import Any, Callable, Dict, List
-
-import gym
+import random
+import torch
+from tqdm import trange
+from src.utils.config import load_configs, make_env, make_agent
+import gymnasium as gym
 import numpy as np
 
-from src.utils.config import load_configs, make_env, make_agent
 
 
 @dataclass
@@ -38,8 +40,6 @@ class ExperimentRunner:
     def __init__(
         self,
         cfg: Dict[str, Any],
-        env_factory: Callable[[str, Dict[str, Any]], gym.Env] = make_env,
-        agent_factory: Callable[[gym.Env, Dict[str, Any]], Any] = make_agent,
         callbacks: List[Callable[[ExperimentResult], None]] = None,
     ) -> None:
         """
@@ -52,8 +52,6 @@ class ExperimentRunner:
             callbacks (List[Callable]): Optional list of callbacks invoked after each run.
         """
         self.cfg = cfg
-        self.env_factory = env_factory
-        self.agent_factory = agent_factory
         self.envs = cfg["experiment"]["envs"]
         self.seeds = cfg["experiment"]["seeds"]
         self.episodes = cfg["experiment"].get("episodes_per_env", 100)
@@ -86,40 +84,60 @@ class ExperimentRunner:
         output_dir = Path(self.cfg["experiment"].get("output_dir", "results/"))
         output_dir.mkdir(exist_ok=True, parents=True)
 
+    # Reemplaza el método _run_single completo en tu archivo train.py
+
     def _run_single(self, env_name: str, seed: int) -> ExperimentResult:
-        """
-        Run a single experiment: instantiate environment and agent, train for N episodes.
-
-        Args:
-            env_name (str): Identifier for the environment.
-            seed (int): Random seed for reproducibility.
-
-        Returns:
-            ExperimentResult: Summary of performance and metrics.
-        """
         # Seed RNGs for reproducibility
+        random.seed(seed)
+        torch.manual_seed(seed)
         np.random.seed(seed)
-        gym.logger.set_level(40)
+        torch.cuda.manual_seed_all(seed) 
 
         # Create environment and agent
-        env = self.env_factory(env_name, self.cfg)
-        env.seed(seed)
-        agent = self.agent_factory(env, self.cfg)
+        env = make_env(self.cfg)
+        agent = make_agent(env, self.cfg)
 
         # Training loop
         returns: List[float] = []
-        for episode in range(1, self.episodes + 1):
-            state = env.reset()
-            done = False
+        
+        # --- INICIO DE CAMBIOS ---
+
+        # 1. El primer reset establece la semilla para toda la secuencia de episodios
+        state, info = env.reset(seed=seed)
+
+        for episode in trange(1, self.episodes + 1, desc=f"{env_name} (Seed {seed})"):
+            # La variable 'state' ya está inicializada para el primer episodio.
+            # Para los siguientes, se obtiene del reset al final del bucle anterior.
+            
+            terminated = False
+            truncated = False
             ep_return = 0.0
-            while not done:
+            i = 0
+
+            while not (terminated or truncated):
                 action = agent.select_action(state)
-                next_state, reward, done, _ = env.step(action)
+
+                # 2. La llamada a step ahora devuelve 5 valores
+                next_state, reward, terminated, truncated, _ = env.step(action)
+                
+                # La señal de 'done' es True si el episodio terminó por cualquier razón
+                done = terminated or truncated
+
                 agent.observe(state, action, reward, next_state, done)
-                agent.update()
+                if i % self.cfg['agent']['train_frequency'] == 0:
+                    agent.update()
+                
                 state = next_state
                 ep_return += reward
+                i += 1
+            
             returns.append(ep_return)
+
+            # 3. Hacemos reset para el siguiente episodio (si no es el último)
+            if episode < self.episodes:
+                state, info = env.reset()
+
+        # --- FIN DE CAMBIOS ---
 
         avg_return = float(sum(returns) / len(returns))
         return ExperimentResult(
@@ -167,4 +185,5 @@ if __name__ == "__main__":
     cfg = load_configs(config_dir)
     runner = ExperimentRunner(cfg)
     all_results = runner.run()
+    print(all_results)
     # Optionally: save master summary or print results

@@ -1,10 +1,11 @@
+from nt import access
 from sre_parse import State
 from .base import BaseAgent
 import torch
 import torch.nn as nn
 import torch.nn.functional as F # No need to instantiate
 from src.agents.buffers import replayBuffer
-from.src.utils.buffer import Transition
+from src.utils.buffer import Transition
 import numpy as np
 import math
 import random
@@ -32,19 +33,21 @@ class MlpQNetwork(nn.Module):
 
 
 class DQNAgent(BaseAgent):
-    def __init__(self, obs_space, act_space, config):
-        super().__init__(obs_space, act_space, config)
-        agent_config = config['agent']
+
+    def __init__(self, obs_space, act_space, agent_config:dict):
+        super().__init__(obs_space, act_space, agent_config)
+        
 
         # Writing hyperparams
-        self.gamma = agent_config['gamma']
-        self.lr = agent_config['lr']
-        self.batch_size =  agent_config['batch_size']
-        self.replay_buffer_size =  agent_config['replay_buffer_size']
-        self.target_update_freq = agent_config['target_update_freq']
-        self.epsilon_start = agent_config['epsilon_start']
-        self.epsilon_end = agent_config['epsilon_end']
-        self.epsilon_decay_steps = agent_config['epsilon_decay_steps']
+        self.gamma = agent_config["hyperparams"]['gamma']
+        self.lr = agent_config["hyperparams"]['lr']
+        self.batch_size =  agent_config["hyperparams"]['batch_size']
+        self.replay_buffer_size =  agent_config["hyperparams"]['replay_buffer_size']
+        self.target_update_freq = agent_config["hyperparams"]['target_update_freq']
+        self.epsilon_start = agent_config["hyperparams"]['epsilon_start']
+        self.epsilon_end = agent_config["hyperparams"]['epsilon_end']
+        self.epsilon_decay_steps = agent_config["hyperparams"]['epsilon_decay_steps']
+        self.loss_fn = nn.SmoothL1Loss()
 
         cuda_available = torch.cuda.is_available()
         self.device = torch.device("cuda:0" if cuda_available else "cpu")
@@ -116,14 +119,72 @@ class DQNAgent(BaseAgent):
         self.buffer.add(transition)
 
 
+    # Reemplaza este método en tu archivo src/agents/dqn.py
+
     def update(self):
-        # Sample a random batch from the buffer
+        """ y=r + γ * max_a(Q(s', a'))"""
         if len(self.buffer) < self.batch_size:
             return
-        else:
-            experiences = self.buffer.sample(self.batch_size)
         
-        # Calculate the target Q-Values for that batch using the frozen target Network.
+        # Sample a random batch from the buffer
+        experiences = self.buffer.sample(self.batch_size)
+        states = experiences['states']
+        actions = experiences['actions']
+        rewards = experiences['rewards']
+        next_states = experiences['next_states']
+        dones = experiences["dones"]
+
+        with torch.no_grad():
+            # Get max Q-value for next states from the target network
+            next_q_values = self.target_net(next_states).max(1)[0]
+            
+            # --- INICIO DE LA CORRECCIÓN 1 ---
+            # Set Q-value to 0 for terminal states.
+            # Convert 'dones' to a boolean tensor for indexing.
+            next_q_values[dones.bool()] = 0.0
+            # --- FIN DE LA CORRECCIÓN 1 ---
+
+            # Compute the target Q-value
+            target_q_values = rewards + (self.gamma * next_q_values)
+
+        # Get predicted Q-values from the policy network
+        # We need to select the Q-values for the actions that were actually taken
+        predicted_q_values = self.policy_net(states).gather(1, actions.unsqueeze(1))
+
+        # Compute loss and perform optimization
+        loss = self.loss_fn(predicted_q_values, target_q_values.unsqueeze(1))
+
+        self.optimizer.zero_grad()
         
+        # --- INICIO DE LA CORRECCIÓN 2 ---
+        # Call backward() on the loss tensor, not the loss function
+        loss.backward()
+        # --- FIN DE LA CORRECCIÓN 2 ---
 
+        self.optimizer.step()
+        
+        # Update the target network periodically
+        if self.steps_done % self.target_update_freq == 0:
+            self.target_net.load_state_dict(self.policy_net.state_dict())
 
+        # No need to return anything, but returning loss can be useful for logging
+        return loss.item()
+    
+    def load(self, path: str):
+        """Loads the policy network's weights from a file."""
+        # Load the state dict from the file, mapping to the agent's current device
+        state_dict = torch.load(path, map_location=self.device)
+        
+        # Apply the loaded weights to the policy network
+        self.policy_net.load_state_dict(state_dict)
+        
+        # Synchronize the target network with the loaded policy network
+        self.target_net.load_state_dict(self.policy_net.state_dict())
+        
+        # Set both networks to evaluation mode
+        self.policy_net.eval()
+        self.target_net.eval()
+
+    def save(self, path: str):
+        """Saves the policy network's weights to a file."""
+        torch.save(self.policy_net.state_dict(), path)
