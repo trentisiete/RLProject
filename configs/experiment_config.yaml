@@ -15,7 +15,7 @@ experiment:
     - 28
 
   # How many episodes to train per (env, seed) combo
-  episodes_per_env: 500
+  episodes_per_env: 1500
 
   # (Optional) Evaluation settings
   evaluation:
@@ -23,3 +23,6 @@ experiment:
     eval_every: 50           # run evaluation every N training episodes
   
   output_dir: "results/dqn_cartpole"
+
+  load_from_path: null # or "path/to/your/model.pth"
+  save_checkpoint_path: "results/dqn_cartpole/final_model.pth"

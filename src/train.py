@@ -51,6 +51,7 @@ class ExperimentRunner:
             agent_factory (Callable): Function to instantiate agents.
             callbacks (List[Callable]): Optional list of callbacks invoked after each run.
         """
+        # TODO: Do we need to save the make_env and make_Agent? 
         self.cfg = cfg
         self.envs = cfg["experiment"]["envs"]
         self.seeds = cfg["experiment"]["seeds"]
@@ -70,7 +71,9 @@ class ExperimentRunner:
             for seed in self.seeds:
                 result = self._run_single(env_name, seed)
                 self.results.append(result)
+                # writes the results in the csv
                 self._log(result)
+                # TODO: CREATE CALLBACKS
                 self._fire_callbacks(result)
         self._teardown()
         return self.results
@@ -130,14 +133,19 @@ class ExperimentRunner:
                 state = next_state
                 ep_return += reward
                 i += 1
-            
+
             returns.append(ep_return)
 
             # 3. Hacemos reset para el siguiente episodio (si no es el último)
             if episode < self.episodes:
                 state, info = env.reset()
-
-        # --- FIN DE CAMBIOS ---
+        
+        # Saving a final model per environment
+        save_path = self.cfg["experiment"].get("save_checkpoint_path")
+        if save_path:
+            # Ensure parent directory exists
+            Path(save_path).parent.mkdir(parents=True, exist_ok=True)
+            agent.save(save_path)
 
         avg_return = float(sum(returns) / len(returns))
         return ExperimentResult(
@@ -185,5 +193,4 @@ if __name__ == "__main__":
     cfg = load_configs(config_dir)
     runner = ExperimentRunner(cfg)
     all_results = runner.run()
-    print(all_results)
     # Optionally: save master summary or print results

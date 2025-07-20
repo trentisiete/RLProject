@@ -36,7 +36,6 @@ class DQNAgent(BaseAgent):
 
     def __init__(self, obs_space, act_space, agent_config:dict):
         super().__init__(obs_space, act_space, agent_config)
-        
 
         # Writing hyperparams
         self.gamma = agent_config["hyperparams"]['gamma']
@@ -83,7 +82,6 @@ class DQNAgent(BaseAgent):
         self.steps_done = 0
 
 
-
     def select_action(self, state):
         
         # Calculate current epsilon using exponential decay
@@ -118,8 +116,6 @@ class DQNAgent(BaseAgent):
         # Adding the "transition" object to Buffer
         self.buffer.add(transition)
 
-
-    # Reemplaza este método en tu archivo src/agents/dqn.py
 
     def update(self):
         """ y=r + γ * max_a(Q(s', a'))"""
@@ -187,4 +183,5 @@ class DQNAgent(BaseAgent):
 
     def save(self, path: str):
         """Saves the policy network's weights to a file."""
+        print(f"Saving model state to {path}...")
         torch.save(self.policy_net.state_dict(), path)
