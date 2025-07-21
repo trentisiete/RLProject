@@ -1,0 +1,15 @@
+# In configs/evaluate_config.yaml
+
+# --- Evaluation Settings ---
+eval:
+  # Name of the environment to run the agent in
+  env_name: "CartPole-v1"
+
+  # Path to the saved model you want to load
+  model_path: "results/dqn_cartpole/final_model.pth"
+
+  # Number of episodes to watch
+  num_episodes: 5
+
+  # Render mode for visualization ('human' opens a window)
+  render_mode: "human"

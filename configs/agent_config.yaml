@@ -12,13 +12,13 @@ agent:
     # Common DQN params
     lr: 0.0001                 # learning rate
     gamma: 0.99                # discount factor
-    batch_size: 10             # minibatch size
-    replay_buffer_size: 500 # max transitions to store
-    # buffer_size: 100000 # max transitions to store
-    target_update_freq: 5   # how often (in steps) to sync target net
+    batch_size: 16             # minibatch size
+    replay_buffer_size: 10000 # max transitions to store
+    min_replay_buffer_size: 1000
+    target_update_freq: 200   # how often (in steps) to sync target net
+
 
     # Exploration schedule
     epsilon_start: 1.0
     epsilon_end: 0.05
-    # epsilon_decay_steps: 10000
-    epsilon_decay_steps: 3000
+    epsilon_decay_steps: 20000

@@ -42,6 +42,7 @@ class DQNAgent(BaseAgent):
         self.lr = agent_config["hyperparams"]['lr']
         self.batch_size =  agent_config["hyperparams"]['batch_size']
         self.replay_buffer_size =  agent_config["hyperparams"]['replay_buffer_size']
+        self.min_replay_buffer_size = agent_config['hyperparams']['min_replay_buffer_size']
         self.target_update_freq = agent_config["hyperparams"]['target_update_freq']
         self.epsilon_start = agent_config["hyperparams"]['epsilon_start']
         self.epsilon_end = agent_config["hyperparams"]['epsilon_end']
@@ -52,6 +53,7 @@ class DQNAgent(BaseAgent):
         self.device = torch.device("cuda:0" if cuda_available else "cpu")
 
         network_class_name = agent_config['network']
+
         if network_class_name == 'MlpQNetwork':
             # Creating both Policy network and Target Network
             self.policy_net = MlpQNetwork(obs_size=obs_space.shape[0], action_size=act_space.n)
@@ -82,9 +84,17 @@ class DQNAgent(BaseAgent):
         self.steps_done = 0
 
 
-    def select_action(self, state):
+    def select_action(self, state, greedy:bool=False):
+        """Selects an action using an epsilon-greedy policy or purely greedy policy."""
         
-        # Calculate current epsilon using exponential decay
+        # if it's in greedy mode, skip exploration mode
+        if greedy:
+            with torch.no_grad():
+                state_tensor = torch.from_numpy(state).float().unsqueeze(0).to(self.device)
+                q_values = self.policy_net(state_tensor)
+                return torch.argmax(q_values).item()
+
+        # The existing implementation remains the same
         epsilon = self.epsilon_end + (self.epsilon_start - self.epsilon_end) * \
               math.exp(-1. * self.steps_done / self.epsilon_decay_steps)
         
@@ -119,7 +129,7 @@ class DQNAgent(BaseAgent):
 
     def update(self):
         """ y=r + γ * max_a(Q(s', a'))"""
-        if len(self.buffer) < self.batch_size:
+        if len(self.buffer) < self.min_replay_buffer_size:
             return
         
         # Sample a random batch from the buffer

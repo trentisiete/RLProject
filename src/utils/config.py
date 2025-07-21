@@ -3,6 +3,7 @@ import yaml
 import gymnasium as gym
 from gymnasium import Env
 from gymnasium.wrappers import NormalizeObservation
+from src import evaluate
 from src.agents.dqn import DQNAgent
 # from src.agents.ppo import PPOAgent
 from src.agents.random_agent import RandomAgent 
@@ -22,13 +23,16 @@ def load_configs(config_dir: Path):
     agent_cfg      = load_yaml(config_dir / 'agent_config.yaml')
     env_cfg        = load_yaml(config_dir / 'env_config.yaml')
     experiment_cfg = load_yaml(config_dir / 'experiment_config.yaml')
+    evaluate_cfg = load_yaml(config_dir / 'evaluate_config.yaml')
 
     # Combine into one dict
     cfg = {
         'agent':      agent_cfg['agent'],
         'env':        env_cfg['env'],
-        'experiment': experiment_cfg['experiment']
+        'experiment': experiment_cfg['experiment'],
+        'eval': evaluate_cfg['eval']
     }
+
     return cfg
 
 def make_agent(env: Env, cfg:dict):

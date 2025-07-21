@@ -12,10 +12,10 @@ experiment:
   seeds:
     # - 0
     - 100
-    - 28
+    # - 28
 
   # How many episodes to train per (env, seed) combo
-  episodes_per_env: 1500
+  episodes_per_env: 10000
 
   # (Optional) Evaluation settings
   evaluation:

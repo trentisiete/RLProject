@@ -40,6 +40,8 @@ class ExperimentRunner:
     def __init__(
         self,
         cfg: Dict[str, Any],
+        env_factory: Callable[[str, Dict], gym.Env] = make_env,
+        agent_factory: Callable[[gym.Env, Dict], Any] = make_agent,
         callbacks: List[Callable[[ExperimentResult], None]] = None,
     ) -> None:
         """
@@ -53,6 +55,8 @@ class ExperimentRunner:
         """
         # TODO: Do we need to save the make_env and make_Agent? 
         self.cfg = cfg
+        self.env_factory = env_factory
+        self.agent_factory = agent_factory
         self.envs = cfg["experiment"]["envs"]
         self.seeds = cfg["experiment"]["seeds"]
         self.episodes = cfg["experiment"].get("episodes_per_env", 100)
@@ -97,8 +101,8 @@ class ExperimentRunner:
         torch.cuda.manual_seed_all(seed) 
 
         # Create environment and agent
-        env = make_env(self.cfg)
-        agent = make_agent(env, self.cfg)
+        env = self.env_factory(self.cfg)
+        agent = self.agent_factory(env, self.cfg)
 
         # Training loop
         returns: List[float] = []
